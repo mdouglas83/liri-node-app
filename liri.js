@@ -21,25 +21,31 @@ if (process.argv.length === 2) {
 			  if (error) {
 			    return console.log(error);
 			  }
-			  var dataArr = data.split(",");
-			  pFour = dataArr[1];
-			  switch (dataArr[0]) {
-				case "my-tweets":
-					goTweet();
-					break;
-				case "spotify-this-song":
-					goSpotify();
-					break;
-				case "movie-this":
-			  		goMovie();
-			  		break;
-			  	default:
-			  		console.log("invalid request");
+			  var lineArr = data.split("\n");
+			  for (i = 0; i < lineArr.length; i++) {
+				  var dataArr = lineArr[i].split(",");
+				  pFour = dataArr[1];
+				  if (dataArr[0].length > 0) {
+					switch (dataArr[0]) {
+						case "my-tweets":
+							goTweet();
+							break;
+						case "spotify-this-song":
+							goSpotify();
+							break;
+						case "movie-this":
+								goMovie();
+								break;
+							default:
+								console.log("Invalid request: " + dataArr[0]);
+						}
+					}
 			  }
+
 			});
 			break;
 		default:
-			console.log("3 arg default action");
+			console.log("Use these parameters: my-tweets | spotify-this-song 'title' | movie-this 'title' | do-what-it-says");
 	}
 }
 
@@ -80,24 +86,14 @@ if (pFour == undefined) pFour = "Ace of Base The Sign";
 }
 
 function goMovie() {
-	var omdb = require('omdb');
-	omdb.get({title: pFour}, function(err, movie) {
-		if(err) {
-			return console.error(err);
+	var movieName = pFour.replace(" ", "+");
+	var queryUrl = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&apikey=trilogy";
+
+	var request = require("request");
+	request(queryUrl, function(error, response, body) {
+		if (!error && response.statusCode === 200) {
+			var movies = JSON.parse(body);
+			console.log(movies);
 		}
-	    if(movies.length < 1) {
-	        return console.log('No movies were found!');
-	    }
-	    movies.forEach(function(movie) {
-	        console.log('Title: ' + movie.title);
-	        console.log('Year: ' + movie.year);
-	        console.log('IMDB Rating: ' + movie.ratings[0].value);
-	        console.log('Rotten Tomatoes Rating: ' + movie.ratings[1].value);
-	        console.log('Country: ' + movie.country);
-	        console.log('Language: ' + movie.language);
-	        console.log('Plot: ' + movie.plot);
-	        console.log('Actors: ' + movie.actors);
-	        console.log('');
-	    });
 	});
 }
